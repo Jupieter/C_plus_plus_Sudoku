@@ -9,6 +9,8 @@ using namespace std;
 const int BOARD_SIZE = 9;
 const int SUBGRID_SIZE = 3;
 
+
+
 class SudokuGenerator {
     public:
         int board[BOARD_SIZE][BOARD_SIZE] = {};
@@ -18,12 +20,13 @@ class SudokuGenerator {
             FillDiagonalSubgrids();
             FillRemainingCells(0, SUBGRID_SIZE);
             PrintBoard();
-            sleep(3);
-            system("CLS");
             randomlyRemoveValues();
+            originalFill();
             PrintBoard();
         }
         void PrintBoard() {
+            sleep(1);
+            system("CLS");
             cout << "Welcome to Sudoku!" << endl;
             cout << "Enter 'i' to insert, 'd' to delete a value or 'q' to quit." << endl;
             cout << "Enter row, column, and value (separated by spaces) to fill a cell." << endl;
@@ -46,43 +49,57 @@ class SudokuGenerator {
                 }
             }
         }
-        void PrintBoard_2() {
-            for (int row = 0; row < BOARD_SIZE; row++) {
-                for (int col = 0; col < BOARD_SIZE; col++) {
-                    cout << board[row][col] << " ";
-                }
-                cout << endl;
-            }
-        }
 
         void Play() {
-            
-
             char action;
             int row, col, value;
 
-            while (true) {
+            while (true) {    
                 cout << "Enter action: ";
                 cin >> action;
-
-                if (action == 'q') {
+                if (action != 'q' &&  action != 'd' && action != 'i'){
+                    cout << "Invalid action." << endl;
+                        PrintBoard();
+                }
+                else if (action == 'q') {
                     cout << "Quitting the game. Goodbye!" << endl;
                     break;
                 }
-                cout << "Enter row, column, and value (separated by spaces): ";
-                cin >> row >> col >> value;
-
-
-
-                // if (IsValid(row, col, value)) {
-                //     board[row][col] = value;
-                //     PrintBoard();
-                // } else if (action == 'd') {
-                //     board[row][col] = 0;
-                //     PrintBoard();
-                // } else {
-                //     cout << "Invalid move. Try again." << endl;
-                // }
+                else if (action == 'i') {
+                    cout << "Enter row, column, and value (separated by spaces): ";
+                    cin >> row >> col >> value;
+                    if (row >= 1 && row <= 9 && col >= 1 && col <= 9 && value >= 1 && value <= 9) {
+                        std::cout << "The input data are valid." << std::endl;
+                        row -=1, col -= 1;
+                        if  (IsValidMove(row, col, value)) {
+                            PrintBoard();
+                        } 
+                        else {
+                            cout << "Invalid move. Try again." << endl;
+                            PrintBoard();
+                        }
+                    } else {
+                        std::cout << "Incorrect input data." << std::endl;
+                        PrintBoard();
+                    }
+                }                 
+                else if (action == 'd' || action == 'D') {
+                    cout << "Enter row, column (separated by spaces): ";
+                    cin >> row >> col;
+                    if (row >= 1 && row <= 9 && col >= 1 && col <= 9) {
+                        std::cout << "The input data are valid." << std::endl;
+                        row -=1, col -= 1;
+                        if (originalBoard[row][col] != 0) {
+                            cout << "This number cannot be deleted because it is part of the original sudoku." << endl;
+                            PrintBoard();
+                        }
+                        else {
+                            cout << "The number deleted" << endl;
+                            board[row][col] = 0;
+                            PrintBoard();
+                        }
+                    } 
+                }
             }
         }
            
@@ -90,11 +107,18 @@ class SudokuGenerator {
 
     private:
 
+        void originalFill() {
+            for (int i = 0; i < 9; i++){
+                for (int j = 0; j < 9; j++){
+                    originalBoard[i][j] = board[i][j];
+                }
+            }
+        }
+
         void randomlyRemoveValues() {
             srand(time(0));
             for (int i = 0; i < 9; i++) {
                 int count = rand() % 2 + 2;  // Number of random values: 2 or 3
-                // cout<<i <<" : " << count<<endl;
                 vector<int>zero_one(9, 0);
                 int num1, num2, num3;
                 // Generate three different random numbers
@@ -147,10 +171,12 @@ class SudokuGenerator {
         }
 
         if (originalBoard[row][col] != 0) {
+            cout << "The entry cannot be modified!" << endl;
             return false;  // A bejegyzés nem módosítható
         }
 
         if (!IsRowSafe(row, value) || !IsColumnSafe(col, value) || !IsSubgridSafe(row - (row % SUBGRID_SIZE), col - (col % SUBGRID_SIZE), value)) {
+            cout << "This number is already included in the row, column or sub-grid!" << endl;
             return false;  // Az érvényes szám már szerepel a sorban, oszlopban vagy részrácsban
         }
 
@@ -232,10 +258,23 @@ class SudokuGenerator {
 
 
 int main() {
-    system("CLS");
     SudokuGenerator sudoku;
-    sudoku.Generate();
-    sudoku.Play();
+    char actn;
+    while (actn != 'q' || actn != 'g') {
+        system("CLS");
+        std::cout << "Welcome to Sudoku!" << std::endl;
+        std::cout << "Enter 'g' to generate a sudoku game or 'q' to quit." << std::endl;
+        std::cout << "Enter action: ";
+        std::cin >> actn;
+        if (actn == 'q') {
+                    cout << "Quitting the game. Goodbye!" << endl;
+                    break;
+                }
+        if (actn == 'g'){
+            sudoku.Generate();
+            sudoku.Play();
+        }
+    }
 
     return 0;
 }
