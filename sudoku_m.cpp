@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <unistd.h>
 
 using namespace std;
 
@@ -11,14 +12,41 @@ const int SUBGRID_SIZE = 3;
 class SudokuGenerator {
     public:
         int board[BOARD_SIZE][BOARD_SIZE] = {};
+        int originalBoard[BOARD_SIZE][BOARD_SIZE] = {};
         
         void Generate() {
             FillDiagonalSubgrids();
             FillRemainingCells(0, SUBGRID_SIZE);
-            // PrintBoard();
+            PrintBoard();
+            sleep(3);
+            system("CLS");
+            randomlyRemoveValues();
+            PrintBoard();
         }
-    
         void PrintBoard() {
+            cout << "Welcome to Sudoku!" << endl;
+            cout << "Enter 'i' to insert, 'd' to delete a value or 'q' to quit." << endl;
+            cout << "Enter row, column, and value (separated by spaces) to fill a cell." << endl;
+            cout << "--1-2-3---4-5-6---7-8-9--" << endl;
+            cout << "-------------------------" << endl;
+            for (int row = 0; row < BOARD_SIZE; row++) {
+                for (int col = 0; col < BOARD_SIZE; col++) {
+                    if (col % SUBGRID_SIZE == 0) {
+                        cout << "| ";
+                    }
+                    if (board[row][col] != 0) {
+                        cout << board[row][col] << " ";
+                    } else {
+                        cout << "  ";
+                    }
+                }
+                cout << "|" << endl;
+                if ((row + 1) % SUBGRID_SIZE == 0) {
+                    cout << "-------------------------" << endl;
+                }
+            }
+        }
+        void PrintBoard_2() {
             for (int row = 0; row < BOARD_SIZE; row++) {
                 for (int col = 0; col < BOARD_SIZE; col++) {
                     cout << board[row][col] << " ";
@@ -26,12 +54,47 @@ class SudokuGenerator {
                 cout << endl;
             }
         }
+
+        void Play() {
+            
+
+            char action;
+            int row, col, value;
+
+            while (true) {
+                cout << "Enter action: ";
+                cin >> action;
+
+                if (action == 'q') {
+                    cout << "Quitting the game. Goodbye!" << endl;
+                    break;
+                }
+                cout << "Enter row, column, and value (separated by spaces): ";
+                cin >> row >> col >> value;
+
+
+
+                // if (IsValid(row, col, value)) {
+                //     board[row][col] = value;
+                //     PrintBoard();
+                // } else if (action == 'd') {
+                //     board[row][col] = 0;
+                //     PrintBoard();
+                // } else {
+                //     cout << "Invalid move. Try again." << endl;
+                // }
+            }
+        }
            
+        
+
+    private:
+
         void randomlyRemoveValues() {
             srand(time(0));
             for (int i = 0; i < 9; i++) {
                 int count = rand() % 2 + 2;  // Number of random values: 2 or 3
-                cout<<i <<" : " << count<<endl;
+                // cout<<i <<" : " << count<<endl;
                 vector<int>zero_one(9, 0);
                 int num1, num2, num3;
                 // Generate three different random numbers
@@ -42,33 +105,19 @@ class SudokuGenerator {
                     num2 = rand() % 9;
                 }
                 zero_one[num2] = 1;
+                if (count > 2) {
                 num3 = rand() % 9;
                 while (num3 == num1 || num3 == num2) {
                     num3 = rand() % 9;
                 }
                 zero_one[num3] = 1;
-                cout<< num1<< " "<< num2<<" "<< num3<<endl;
-                cout << "Lista elemei: ";
-                for (int k = 0; k < zero_one.size(); k++) {
-                    cout << zero_one[k] << " ";
                 }
-                cout << endl;
-                // for (int j = 0; j < 9; j++) {
-                //     switch (j) {
-                //         case num1:
-                //             j++;
-                //         case num2:
-                //             j++;
-                //         case num3:
-                //             j++;
-                //         default:
-                //             board[i][j] = 0;
-                //     }
-                // }
+
+                for (int j = 0; j < 9; j++) {
+                    board[i][j] = board[i][j] * zero_one[j];
+                }
             }
         }
-
-    private:
 
         void FillDiagonalSubgrids() {
             for (int i = 0; i < BOARD_SIZE; i += SUBGRID_SIZE) {
@@ -90,6 +139,22 @@ class SudokuGenerator {
 
         bool IsSafe(int row, int col, int num) {
         return (IsRowSafe(row, num) && IsColumnSafe(col, num) && IsSubgridSafe(row - (row % SUBGRID_SIZE), col - (col % SUBGRID_SIZE), num));
+    }
+
+    bool IsValidMove(int row, int col, int value) {
+        if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE || value < 1 || value > BOARD_SIZE) {
+            return false;
+        }
+
+        if (originalBoard[row][col] != 0) {
+            return false;  // A bejegyzés nem módosítható
+        }
+
+        if (!IsRowSafe(row, value) || !IsColumnSafe(col, value) || !IsSubgridSafe(row - (row % SUBGRID_SIZE), col - (col % SUBGRID_SIZE), value)) {
+            return false;  // Az érvényes szám már szerepel a sorban, oszlopban vagy részrácsban
+        }
+
+        return true;
     }
 
     bool IsRowSafe(int row, int num) {
@@ -167,23 +232,10 @@ class SudokuGenerator {
 
 
 int main() {
+    system("CLS");
     SudokuGenerator sudoku;
     sudoku.Generate();
-    sudoku.PrintBoard();
-    sudoku.randomlyRemoveValues();
-    int tabla[9][9] ={};
-    for (int row=0; row<9; row++){
-        for (int col = 0; col<9; col++){
-            tabla[row][col] = sudoku.board[row][col] ;
-        }
-    };
-    cout<< "----------------------------------"<< endl;
-    for (int row = 0; row < BOARD_SIZE; row++) {
-            for (int col = 0; col < BOARD_SIZE; col++) {
-                cout << tabla[row][col] << " ";
-            }
-            cout << endl;
-    };
+    sudoku.Play();
 
     return 0;
 }
