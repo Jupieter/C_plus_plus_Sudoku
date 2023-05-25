@@ -28,7 +28,7 @@ class SudokuGenerator {
             sleep(1);
             system("CLS");
             cout << "Welcome to Sudoku!" << endl;
-            cout << "Enter 'i' to insert, 'd' to delete a value or 'q' to quit." << endl;
+            cout << "Enter 'i' to insert, 'd' to delete a value or 's' to autofill the board or 'q' to quit." << endl;
             cout << "Enter row, column, and value (separated by spaces) to fill a cell." << endl;
             cout << "--1-2-3---4-5-6---7-8-9--" << endl;
             cout << "-------------------------" << endl;
@@ -57,21 +57,22 @@ class SudokuGenerator {
             while (true) {    
                 cout << "Enter action: ";
                 cin >> action;
-                if (action != 'q' &&  action != 'd' && action != 'i'){
+                if (action != 'q' &&  action != 'd' && action != 'i' && action != 's'){
                     cout << "Invalid action." << endl;
                         PrintBoard();
                 }
-                else if (action == 'q') {
+                else if (action == 'q'|| action == 'Q') {
                     cout << "Quitting the game. Goodbye!" << endl;
                     break;
                 }
-                else if (action == 'i') {
+                else if (action == 'i'|| action == 'I') {
                     cout << "Enter row, column, and value (separated by spaces): ";
                     cin >> row >> col >> value;
                     if (row >= 1 && row <= 9 && col >= 1 && col <= 9 && value >= 1 && value <= 9) {
                         std::cout << "The input data are valid." << std::endl;
                         row -=1, col -= 1;
                         if  (IsValidMove(row, col, value)) {
+                            board[row][col] = value;
                             PrintBoard();
                         } 
                         else {
@@ -100,6 +101,11 @@ class SudokuGenerator {
                         }
                     } 
                 }
+                else if (action == 's'|| action == 'S') {
+                    cout << "You have choosed the autofill." << endl;
+                    sleep(1);
+                    Solve();
+                }
             }
         }
            
@@ -111,6 +117,13 @@ class SudokuGenerator {
             for (int i = 0; i < 9; i++){
                 for (int j = 0; j < 9; j++){
                     originalBoard[i][j] = board[i][j];
+                }
+            }
+        }
+        void backFill() {
+            for (int i = 0; i < 9; i++){
+                for (int j = 0; j < 9; j++){
+                    board[i][j] = originalBoard[i][j];
                 }
             }
         }
@@ -253,6 +266,43 @@ class SudokuGenerator {
         return false;
     }
 
+    void Solve() {
+        backFill();
+        if (SolveHelper(0, 0)) {
+            cout << "Solution:" << endl;
+            PrintBoard();
+        } else {
+            cout << "No solution found!" << endl;
+        }
+    }
+
+    bool SolveHelper(int row, int col) {
+        // PrintBoard();
+        if (row == BOARD_SIZE) {
+            return true;  // Megoldás megtalálva
+        }
+
+        if (col == BOARD_SIZE) {
+            return SolveHelper(row + 1, 0);  // Ugrás a következő sorra
+        }
+
+        if (board[row][col] != 0) {
+            return SolveHelper(row, col + 1);  // Ugrás a következő oszlopra
+        }
+
+        for (int num = 1; num <= BOARD_SIZE; num++) {
+            if (IsSafe(row, col, num)) {
+                board[row][col] = num;
+                if (SolveHelper(row, col + 1)) {
+                    return true;
+                }
+                board[row][col] = 0;  // Visszaállítjuk a 0 értéket, ha a beállítás nem vezet megoldáshoz
+            }
+            // PrintBoard();
+        }
+
+        return false;  // Megoldás nem található
+    }
  
 };
 
