@@ -30,9 +30,10 @@ class SudokuGenerator {
             cout << "Welcome to Sudoku!" << endl;
             cout << "Enter 'i' to insert, 'd' to delete a value or 's' to autofill the board or 'q' to quit." << endl;
             cout << "Enter row, column, and value (separated by spaces) to fill a cell." << endl;
-            cout << "--1-2-3---4-5-6---7-8-9--" << endl;
-            cout << "-------------------------" << endl;
+            cout << "---1-2-3---4-5-6---7-8-9--" << endl;
+            cout << "--------------------------" << endl;
             for (int row = 0; row < BOARD_SIZE; row++) {
+                cout << (row + 1);
                 for (int col = 0; col < BOARD_SIZE; col++) {
                     if (col % SUBGRID_SIZE == 0) {
                         cout << "| ";
@@ -45,7 +46,7 @@ class SudokuGenerator {
                 }
                 cout << "|" << endl;
                 if ((row + 1) % SUBGRID_SIZE == 0) {
-                    cout << "-------------------------" << endl;
+                    cout << "--------------------------" << endl;
                 }
             }
         }
@@ -57,7 +58,8 @@ class SudokuGenerator {
             while (true) {    
                 cout << "Enter action: ";
                 cin >> action;
-                if (action != 'q' &&  action != 'd' && action != 'i' && action != 's'){
+                if (action != 'q' &&  action != 'd' && action != 'i' && action != 's' &&
+                    action != 'Q' &&  action != 'D' && action != 'I' && action != 'S') {
                     cout << "Invalid action." << endl;
                         PrintBoard();
                 }
@@ -316,11 +318,11 @@ int main() {
         std::cout << "Enter 'g' to generate a sudoku game or 'q' to quit." << std::endl;
         std::cout << "Enter action: ";
         std::cin >> actn;
-        if (actn == 'q') {
+        if (actn == 'q' || actn == 'Q') {
                     cout << "Quitting the game. Goodbye!" << endl;
                     break;
                 }
-        if (actn == 'g'){
+        if (actn == 'g' || actn == 'G'){
             sudoku.Generate();
             sudoku.Play();
         }
