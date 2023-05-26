@@ -10,12 +10,13 @@ const int BOARD_SIZE = 9;
 const int SUBGRID_SIZE = 3;
 
 
-
+// Class to generate and play Sudoku
 class SudokuGenerator {
     public:
-        int board[BOARD_SIZE][BOARD_SIZE] = {};
-        int originalBoard[BOARD_SIZE][BOARD_SIZE] = {};
+        int board[BOARD_SIZE][BOARD_SIZE] = {}; // Sudoku board
+        int originalBoard[BOARD_SIZE][BOARD_SIZE] = {}; // Original Sudoku board
         
+        // Generate a Sudoku game
         void Generate() {
             FillDiagonalSubgrids();
             FillRemainingCells(0, SUBGRID_SIZE);
@@ -24,6 +25,7 @@ class SudokuGenerator {
             originalFill();
             PrintBoard();
         }
+        // Print the Sudoku board
         void PrintBoard() {
             sleep(1);
             system("CLS");
@@ -50,7 +52,7 @@ class SudokuGenerator {
                 }
             }
         }
-
+        // Play the Sudoku game
         void Play() {
             char action;
             int row, col, value;
@@ -158,46 +160,97 @@ class SudokuGenerator {
             }
         }
 
+        // Fill the diagonal subgrids with random numbers
         void FillDiagonalSubgrids() {
             for (int i = 0; i < BOARD_SIZE; i += SUBGRID_SIZE) {
                 FillSubgrid(i, i);
             }
         }
 
+        // Fill a subgrid with shuffled numbers
         void FillSubgrid(int startRow, int startCol) {
+            // Create a vector of numbers from 1 to 9
             vector<int> nums = {1, 2, 3, 4, 5, 6, 7, 8, 9};
             shuffle(nums.begin(), nums.end(), random_device());
 
             int numIndex = 0;
             for (int row = 0; row < SUBGRID_SIZE; row++) {
                 for (int col = 0; col < SUBGRID_SIZE; col++) {
+                    // Assign the shuffled numbers to the subgrid cells
                     board[startRow + row][startCol + col] = nums[numIndex++];
                 }
             }
         }
 
-        bool IsSafe(int row, int col, int num) {
-        return (IsRowSafe(row, num) && IsColumnSafe(col, num) && IsSubgridSafe(row - (row % SUBGRID_SIZE), col - (col % SUBGRID_SIZE), num));
-    }
 
+        // Fill the remaining cells of the Sudoku board using backtracking
+        bool FillRemainingCells(int row, int col) {
+            // Check if the column index is out of range and move to the next row
+            if (col >= BOARD_SIZE && row < BOARD_SIZE - 1) {
+                row++;
+                col = 0;
+            }
+            // Check if all rows and columns are filled
+            if (row >= BOARD_SIZE && col >= BOARD_SIZE) {
+                return true;
+            }
+            // Determine the starting column for each subgrid
+            if (row < SUBGRID_SIZE) {
+                if (col < SUBGRID_SIZE) {
+                    col = SUBGRID_SIZE;
+                }
+            } else if (row < BOARD_SIZE - SUBGRID_SIZE) {
+                if (col == static_cast<int>(row / SUBGRID_SIZE) * SUBGRID_SIZE) {
+                    col += SUBGRID_SIZE;
+                }
+            } else {
+                if (col == BOARD_SIZE - SUBGRID_SIZE) {
+                    row++;
+                    col = 0;
+                    if (row >= BOARD_SIZE) {
+                        return true;
+                    }
+                }
+            }
+            // Try placing numbers in the cell
+            for (int num = 1; num <= BOARD_SIZE; num++) {
+                if (IsSafe(row, col, num)) {
+                    board[row][col] = num;
+                    if (FillRemainingCells(row, col + 1)) {
+                        return true;
+                    }
+                    board[row][col] = 0;
+                }
+            }
+
+            return false;
+        }
+
+    // Check if it is safe to place a number in a specific cell
+    bool IsSafe(int row, int col, int num) {
+        return (IsRowSafe(row, num) && IsColumnSafe(col, num) && IsSubgridSafe(row - (row % SUBGRID_SIZE), col - (col % SUBGRID_SIZE), num));
+        }
+
+    // Check if a move is valid
     bool IsValidMove(int row, int col, int value) {
         if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE || value < 1 || value > BOARD_SIZE) {
             return false;
         }
-
+        // Check if the cell is an original value (cannot be modified)
         if (originalBoard[row][col] != 0) {
             cout << "The entry cannot be modified!" << endl;
-            return false;  // A bejegyzés nem módosítható
+            return false;  
         }
-
+        // Check if the value is already present in the row, column, or subgrid
         if (!IsRowSafe(row, value) || !IsColumnSafe(col, value) || !IsSubgridSafe(row - (row % SUBGRID_SIZE), col - (col % SUBGRID_SIZE), value)) {
             cout << "This number is already included in the row, column or sub-grid!" << endl;
-            return false;  // Az érvényes szám már szerepel a sorban, oszlopban vagy részrácsban
+            return false; 
         }
 
         return true;
     }
 
+    // Check if a value is safe to place in a row
     bool IsRowSafe(int row, int num) {
         for (int col = 0; col < BOARD_SIZE; col++) {
             if (board[row][col] == num) {
@@ -207,6 +260,7 @@ class SudokuGenerator {
         return true;
     }
 
+    // Check if a value is safe to place in a column
     bool IsColumnSafe(int col, int num) {
         for (int row = 0; row < BOARD_SIZE; row++) {
             if (board[row][col] == num) {
@@ -216,6 +270,7 @@ class SudokuGenerator {
         return true;
     }
 
+    // Check if a value is safe to place in a subgrid
     bool IsSubgridSafe(int startRow, int startCol, int num) {
         for (int row = 0; row < SUBGRID_SIZE; row++) {
             for (int col = 0; col < SUBGRID_SIZE; col++) {
@@ -227,47 +282,7 @@ class SudokuGenerator {
         return true;
     }
 
-    bool FillRemainingCells(int row, int col) {
-        if (col >= BOARD_SIZE && row < BOARD_SIZE - 1) {
-            row++;
-            col = 0;
-        }
-
-        if (row >= BOARD_SIZE && col >= BOARD_SIZE) {
-            return true;
-        }
-
-        if (row < SUBGRID_SIZE) {
-            if (col < SUBGRID_SIZE) {
-                col = SUBGRID_SIZE;
-            }
-        } else if (row < BOARD_SIZE - SUBGRID_SIZE) {
-            if (col == static_cast<int>(row / SUBGRID_SIZE) * SUBGRID_SIZE) {
-                col += SUBGRID_SIZE;
-            }
-        } else {
-            if (col == BOARD_SIZE - SUBGRID_SIZE) {
-                row++;
-                col = 0;
-                if (row >= BOARD_SIZE) {
-                    return true;
-                }
-            }
-        }
-
-        for (int num = 1; num <= BOARD_SIZE; num++) {
-            if (IsSafe(row, col, num)) {
-                board[row][col] = num;
-                if (FillRemainingCells(row, col + 1)) {
-                    return true;
-                }
-                board[row][col] = 0;
-            }
-        }
-
-        return false;
-    }
-
+    //Automatic solution of the game by the program
     void Solve() {
         backFill();
         if (SolveHelper(0, 0)) {
@@ -279,17 +294,16 @@ class SudokuGenerator {
     }
 
     bool SolveHelper(int row, int col) {
-        // PrintBoard();
         if (row == BOARD_SIZE) {
-            return true;  // Megoldás megtalálva
+            return true;  // Solution found
         }
 
         if (col == BOARD_SIZE) {
-            return SolveHelper(row + 1, 0);  // Ugrás a következő sorra
+            return SolveHelper(row + 1, 0);  // Go to the next row
         }
 
         if (board[row][col] != 0) {
-            return SolveHelper(row, col + 1);  // Ugrás a következő oszlopra
+            return SolveHelper(row, col + 1);  // Go to the next col
         }
 
         for (int num = 1; num <= BOARD_SIZE; num++) {
@@ -298,12 +312,12 @@ class SudokuGenerator {
                 if (SolveHelper(row, col + 1)) {
                     return true;
                 }
-                board[row][col] = 0;  // Visszaállítjuk a 0 értéket, ha a beállítás nem vezet megoldáshoz
+                board[row][col] = 0;  // Reset to 0 if the setting does not lead to a solution
             }
             // PrintBoard();
         }
 
-        return false;  // Megoldás nem található
+        return false;  // No solution found
     }
  
 };
